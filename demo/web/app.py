@@ -11,8 +11,6 @@ from typing import Any, Callable, Dict, Iterator, Optional, Tuple, cast
 
 import numpy as np
 import torch
-from transformers.cache_utils import DynamicCache
-from transformers.modeling_outputs import BaseModelOutputWithPast
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -160,12 +158,11 @@ class StreamingTTSService:
             preset_path = self.voice_presets[key]
             print(f"[startup] Loading voice preset {key} from {preset_path}")
             print(f"[startup] Loading prefilled prompt from {preset_path}")
-            with torch.serialization.safe_globals([BaseModelOutputWithPast, DynamicCache]):
-                prefilled_outputs = torch.load(
-                    preset_path,
-                    map_location=self._torch_device,
-                    weights_only=True,
-                )
+            prefilled_outputs = torch.load(
+                preset_path,
+                map_location=self._torch_device,
+                weights_only=False,
+            )
             self._voice_cache[key] = prefilled_outputs
 
         return self._voice_cache[key]
